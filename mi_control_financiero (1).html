@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Control Financiero</title>
+<style>
+:root{--navy:#152c3a;--green:#238363;--mint:#dcefe8;--bg:#f4f7f8;--text:#1d2b34;--muted:#687983;--line:#e0e7ea;--red:#c94c55;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text)}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 14px;background:var(--green);color:white;font-weight:650}button.secondary{background:#eaf0f2;color:var(--text)}button.danger{background:#fff0f0;color:var(--red)}button.small{padding:6px 9px;font-size:12px}
+header{background:var(--navy);color:white;padding:24px clamp(16px,4vw,42px);display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}header h1{margin:0;font-size:clamp(22px,3vw,30px)}header p{margin:6px 0 0;color:#c5d6de;font-size:14px}.wrap{max-width:1200px;margin:auto;padding:22px clamp(12px,3vw,28px) 40px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.topline label{font-size:13px;color:var(--muted)}input,select{width:100%;border:1px solid #d6e0e4;background:#fff;border-radius:9px;padding:10px;color:var(--text);min-width:0}input:focus,select:focus{outline:2px solid #9dd7c2;border-color:var(--green)}.month{width:auto;min-width:145px;margin-left:8px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}nav button{background:#e7edef;color:#334650}nav button.active{background:var(--green);color:#fff}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 3px 12px #152c3a08}.metric-label{color:var(--muted);font-size:13px}.metric{font-size:clamp(20px,2.5vw,28px);font-weight:750;margin-top:9px;overflow-wrap:anywhere}.green{color:var(--green)}.red{color:var(--red)}.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.panel h2{font-size:18px;margin:0 0 16px}.panel h3{font-size:15px;margin:0 0 12px}.section{display:none}.section.active{display:block}.fieldgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:13px;color:var(--muted)}.field.full{grid-column:1/-1}.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);white-space:nowrap}th{font-size:12px;color:var(--muted);font-weight:650}td.amount{text-align:right;font-weight:700}.empty{text-align:center;color:var(--muted);padding:22px}.barrow{margin:14px 0}.barlabel{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:7px}.track{height:9px;border-radius:20px;background:#edf1f3;overflow:hidden}.fill{height:100%;background:var(--green);border-radius:20px}.fill.over{background:var(--red)}.notice{border-radius:12px;background:#edf8f2;padding:13px;font-size:14px;line-height:1.5}.notice.warn{background:#fff1f1;color:#963841}.muted{color:var(--muted);font-size:12px;line-height:1.5}.rowbetween{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.pill{font-size:11px;padding:4px 8px;border-radius:20px;background:#edf2f4}.pill.income{background:#e5f6ee;color:#1d7857}.pill.expense{background:#fff0f0;color:#b23d47}.list{display:grid;gap:10px}.debtitem{border:1px solid var(--line);border-radius:12px;padding:13px}.debtitem strong{font-size:14px}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}.hidden{display:none!important}
+@media(max-width:850px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+@media(max-width:520px){header{padding:20px 16px}.wrap{padding:16px 12px 30px}.cards{gap:9px}.card{padding:13px}.metric{font-size:20px}.fieldgrid{grid-template-columns:1fr}.field.full{grid-column:auto}nav button{flex:1 1 30%;padding:10px 7px;font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>Mi control financiero</h1><p>Ingresos · Gastos · Presupuesto · Deudas · Ahorro</p></div>
+ <button id="exportBtn" type="button">Exportar CSV</button>
+</header>
+<div class="wrap">
+ <div class="topline">
+  <div><strong>Resumen financiero</strong><div class="muted">Moneda de referencia: pesos mexicanos (MXN)</div></div>
+  <div><label for="monthFilter">Periodo</label><input class="month" type="month" id="monthFilter"></div>
+ </div>
+ <nav id="nav">
+  <button class="active" data-tab="dashboard">Dashboard</button><button data-tab="movimientos">Movimientos</button><button data-tab="presupuesto">Presupuesto</button><button data-tab="deudas">Deudas</button><button data-tab="ahorro">Ahorro</button><button data-tab="datos">Datos</button>
+ </nav>
+
+ <section id="dashboard" class="section active">
+  <div class="cards">
+   <div class="card"><div class="metric-label">Ingresos del mes</div><div class="metric green" id="kIncome">$0.00</div></div>
+   <div class="card"><div class="metric-label">Gastos del mes</div><div class="metric red" id="kExpense">$0.00</div></div>
+   <div class="card"><div class="metric-label">Balance del mes</div><div class="metric" id="kBalance">$0.00</div></div>
+   <div class="card"><div class="metric-label">Deuda pendiente</div><div class="metric" id="kDebt">$0.00</div></div>
+  </div>
+  <div class="grid2">
+   <div class="panel"><h2>Gastos por categoría</h2><div id="categoryBars"></div></div>
+   <div class="panel"><h2>Estado financiero</h2><div id="financialNotice" class="notice">Registra tus movimientos para ver el diagnóstico.</div><div style="height:16px"></div><h3>Indicadores del mes</h3><div class="rowbetween"><span class="muted">Gastos / ingresos</span><strong id="expenseRatio">—</strong></div><div style="height:10px"></div><div class="rowbetween"><span class="muted">Tasa de ahorro estimada</span><strong id="savingRate">—</strong></div><div style="height:10px"></div><div class="rowbetween"><span class="muted">Pagos mensuales de deuda</span><strong id="debtPayments">$0.00</strong></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><div class="rowbetween"><h2 style="margin:0">Movimientos recientes</h2><button class="secondary" data-goto="movimientos">Ver todos</button></div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Categoría</th><th style="text-align:right">Monto</th></tr></thead><tbody id="recentTable"></tbody></table></div></div>
+ </section>
+
+ <section id="movimientos" class="section">
+  <div class="grid2">
+   <div class="panel"><h2 id="movementFormTitle">Agregar movimiento</h2>
+    <form id="movementForm">
+     <div class="fieldgrid">
+      <div class="field"><label for="mType">Tipo</label><select id="mType"><option>Gasto</option><option>Ingreso</option></select></div>
+      <div class="field"><label for="mDate">Fecha</label><input id="mDate" type="date" required></div>
+      <div class="field full"><label for="mConcept">Concepto</label><input id="mConcept" placeholder="Ej. Nómina, despensa, gasolina" required maxlength="100"></div>
+      <div class="field"><label for="mCategory">Categoría</label><select id="mCategory"></select></div>
+      <div class="field"><label for="mAmount">Monto (MXN)</label><input id="mAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required></div>
+      <div class="field full"><label for="mAccount">Cuenta o método (opcional)</label><input id="mAccount" placeholder="Ej. Efectivo, débito, crédito"></div>
+      <div class="field full"><label for="mNotes">Notas (opcional)</label><input id="mNotes" placeholder="Detalles adicionales"></div>
+     </div>
+     <div class="form-actions"><button id="saveMovement" type="submit">Guardar movimiento</button><button id="cancelEdit" class="secondary hidden" type="button">Cancelar edición</button></div>
+    </form>
+    <p class="muted">Los pagos de tarjetas o deudas pueden registrarse como gastos si quieres que afecten el balance. Evita contar dos veces una compra y el pago de esa misma compra.</p>
+   </div>
+   <div class="panel"><h2>Resumen del periodo</h2><div class="rowbetween"><span class="muted">Ingresos</span><strong class="green" id="moveIncome">$0.00</strong></div><div style="height:12px"></div><div class="rowbetween"><span class="muted">Gastos</span><strong class="red" id="moveExpense">$0.00</strong></div><div style="height:12px"></div><div class="rowbetween"><span class="muted">Balance</span><strong id="moveBalance">$0.00</strong></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><div class="rowbetween"><h2 style="margin:0">Historial de movimientos</h2><select id="typeFilter" style="max-width:180px"><option value="Todos">Todos los tipos</option><option>Ingreso</option><option>Gasto</option></select></div><div class="tablewrap" style="margin-top:10px"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Categoría</th><th>Cuenta</th><th style="text-align:right">Monto</th><th>Acciones</th></tr></thead><tbody id="movementTable"></tbody></table></div></div>
+ </section>
+
+ <section id="presupuesto" class="section">
+  <div class="grid2">
+   <div class="panel"><h2>Presupuesto mensual</h2><form id="budgetForm"><div class="field"><label for="budgetAmount">Límite mensual de gastos (MXN)</label><input id="budgetAmount" type="number" min="0" step="0.01" placeholder="Ej. 10000"></div><div class="form-actions"><button type="submit">Guardar presupuesto</button></div></form><p class="muted">El presupuesto compara el límite general con los gastos del periodo seleccionado arriba.</p></div>
+   <div class="panel"><h2>Uso del presupuesto</h2><div class="metric" id="budgetSpent">$0.00</div><div class="track" style="margin:12px 0"><div class="fill" id="budgetBar" style="width:0%"></div></div><div class="rowbetween"><span class="muted" id="budgetPercent">0% utilizado</span><strong id="budgetRemaining">$0.00</strong></div><div id="budgetNotice" class="notice" style="margin-top:15px">Define tu presupuesto mensual.</div></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><h2>Detalle de gastos por categoría</h2><div id="budgetCategories"></div></div>
+ </section>
+
+ <section id="deudas" class="section">
+  <div class="grid2">
+   <div class="panel"><h2>Registrar deuda o cuenta por pagar</h2><form id="debtForm"><div class="fieldgrid"><div class="field full"><label for="dName">Acreedor / concepto</label><input id="dName" required maxlength="100" placeholder="Ej. Tarjeta bancaria, préstamo"></div><div class="field"><label for="dBalance">Saldo pendiente (MXN)</label><input id="dBalance" type="number" min="0.01" step="0.01" required></div><div class="field"><label for="dPayment">Pago mensual previsto</label><input id="dPayment" type="number" min="0" step="0.01" value="0"></div><div class="field"><label for="dDue">Próximo vencimiento</label><input id="dDue" type="date"></div><div class="field"><label for="dType">Tipo</label><select id="dType"><option>Tarjeta de crédito</option><option>Préstamo</option><option>Servicio</option><option>Compra a plazos</option><option>Otro</option></select></div></div><div class="form-actions"><button type="submit">Guardar deuda</button></div></form></div>
+   <div class="panel"><h2>Resumen de deudas</h2><div class="metric" id="debtTotal">$0.00</div><div class="metric-label">Saldo pendiente total</div><div style="height:15px"></div><div class="rowbetween"><span class="muted">Pagos mensuales previstos</span><strong id="debtMonthly">$0.00</strong></div><p class="muted">Los pagos no descuentan automáticamente el saldo. Edita el saldo de la deuda después de realizar un abono.</p></div>
+  </div>
+  <div class="panel" style="margin-top:16px"><h2>Mis deudas</h2><div id="debtList" class="list"></div></div>
+ </section>
+
+ <section id="ahorro" class="section">
+  <div class="grid2">
+   <div class="panel"><h2>Configurar meta de ahorro</h2><form id="savingForm"><div class="fieldgrid"><div class="field full"><label for="sName">Nombre de la meta</label><input id="sName" required maxlength="100" placeholder="Ej. Fondo de emergencia"></div><div class="field"><label for="sTarget">Objetivo (MXN)</label><input id="sTarget" type="number" min="0" step="0.01" required></div><div class="field"><label for="sCurrent">Ahorrado actualmente (MXN)</label><input id="sCurrent" type="number" min="0" step="0.01" required value="0"></div><div class="field full"><label for="sMonthly">Aportación mensual prevista (MXN)</label><input id="sMonthly" type="number" min="0" step="0.01" value="0"></div></div><div class="form-actions"><button type="submit">Guardar meta</button></div></form></div>
+   <div class="panel"><h2 id="savingTitle">Mi meta de ahorro</h2><div class="metric" id="savingAmounts">$0.00</div><div class="track" style="margin:12px 0"><div class="fill" id="savingBar" style="width:0%"></div></div><div class="rowbetween"><span class="muted" id="savingPercent">0% completado</span><strong id="savingLeft">$0.00 restantes</strong></div><div class="notice" id="savingEstimate" style="margin-top:15px">Configura tu meta para calcular el avance.</div></div>
+  </div>
+  <p class="muted">La meta es un seguimiento independiente. Si deseas que una aportación afecte tu balance mensual, regístrala también como movimiento en la categoría Ahorro.</p>
+ </section>
+
+ <section id="datos" class="section">
+  <div class="panel"><h2>Respaldo de tus datos</h2><p>Este archivo guarda los datos en el almacenamiento local de este navegador. No se envían a ningún servidor. Si borras los datos del navegador o abres el archivo en otro dispositivo, podrías perder acceso a los registros; descarga un respaldo JSON con regularidad.</p><div class="form-actions"><button id="backupBtn">Descargar respaldo JSON</button><label class="secondary" style="display:inline-flex;align-items:center;padding:11px 14px;border-radius:10px;cursor:pointer;font-weight:650"><input id="restoreFile" type="file" accept=".json,application/json" style="display:none">Importar respaldo JSON</label><button id="resetBtn" class="danger">Restablecer todos los datos</button></div><p class="muted">Exportar CSV descarga tus movimientos para abrirlos en Excel. El respaldo JSON incluye movimientos, presupuesto, deudas y meta de ahorro.</p></div>
+  <div class="panel" style="margin-top:16px"><h2>Consejos de uso</h2><ul style="line-height:1.8;padding-left:20px"><li>Registra los ingresos cuando recibas el dinero.</li><li>Registra cada gasto con una categoría consistente.</li><li>Revisa el dashboard al cierre de cada semana y mes.</li><li>Actualiza el saldo de las deudas después de pagar.</li><li>Descarga respaldos periódicamente y guárdalos en un lugar seguro.</li></ul></div>
+ </section>
+ <div class="foot">Mi Control Financiero · Archivo HTML local · Datos de demostración editables</div>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const money=n=>Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+const today=new Date();const localDate=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+const monthNow=localDate.slice(0,7);
+const categories={
+ Ingreso:['Salario','Horas extra','Ingresos extra','Venta','Reembolso','Otros ingresos'],
+ Gasto:['Vivienda','Alimentación','Transporte','Servicios','Salud','Entretenimiento','Educación','Ropa y cuidado personal','Deudas','Ahorro','Mascotas','Impuestos','Otros']
+};
+const sample=[
+ {id:1,type:'Ingreso',date:monthNow+'-15',concept:'Sueldo de ejemplo',category:'Salario',amount:15000,account:'Banco',notes:'Registro demostrativo'},
+ {id:2,type:'Gasto',date:monthNow+'-16',concept:'Despensa de ejemplo',category:'Alimentación',amount:1800,account:'Débito',notes:''},
+ {id:3,type:'Gasto',date:monthNow+'-17',concept:'Pago de tarjeta de ejemplo',category:'Deudas',amount:1200,account:'Banco',notes:'Registro demostrativo'}
+];
+let state={movements:sample,budget:8000,debts:[],saving:{name:'Fondo de emergencia',target:20000,current:0,monthly:2000}};
+let editingId=null;
+function load(){try{const raw=localStorage.getItem('miControlFinancieroV1');if(raw){const parsed=JSON.parse(raw);if(parsed&&Array.isArray(parsed.movements))state={...state,...parsed};}}catch(e){console.warn('No se pudieron cargar los datos guardados',e)}}
+function persist(){try{localStorage.setItem('miControlFinancieroV1',JSON.stringify(state));}catch(e){alert('No se pudieron guardar los datos en este navegador. Descarga un respaldo JSON.');}}
+function selectedMonth(){return $('monthFilter').value||monthNow}
+function monthMoves(){return state.movements.filter(m=>(m.date||'').slice(0,7)===selectedMonth())}
+function sum(items){return items.reduce((a,x)=>a+Number(x.amount||0),0)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fillCategories(type,selected){$('mCategory').innerHTML=(categories[type]||categories.Gasto).map(c=>`<option ${c===selected?'selected':''}>${esc(c)}</option>`).join('')}
+function stats(){const list=monthMoves(),income=sum(list.filter(m=>m.type==='Ingreso')),expense=sum(list.filter(m=>m.type==='Gasto')),balance=income-expense,debt=sum(state.debts.map(d=>({amount:d.balance}))),payments=sum(state.debts.map(d=>({amount:d.payment})));return {list,income,expense,balance,debt,payments}}
+function renderDashboard(){
+ const s=stats();$('kIncome').textContent=money(s.income);$('kExpense').textContent=money(s.expense);$('kBalance').textContent=money(s.balance);$('kBalance').className='metric '+(s.balance<0?'red':'green');$('kDebt').textContent=money(s.debt);
+ $('moveIncome').textContent=money(s.income);$('moveExpense').textContent=money(s.expense);$('moveBalance').textContent=money(s.balance);
+ $('expenseRatio').textContent=s.income?`${(s.expense/s.income*100).toFixed(1)}%`:'—';$('savingRate').textContent=s.income?`${(s.balance/s.income*100).toFixed(1)}%`:'—';$('debtPayments').textContent=money(s.payments);
+ const cats={};s.list.filter(m=>m.type==='Gasto').forEach(m=>cats[m.category]=(cats[m.category]||0)+Number(m.amount));const entries=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+ $('categoryBars').innerHTML=entries.length?entries.map(([name,val])=>`<div class="barrow"><div class="barlabel"><span>${esc(name)}</span><strong>${money(val)} · ${s.expense?(val/s.expense*100).toFixed(1):0}%</strong></div><div class="track"><div class="fill" style="width:${s.expense?Math.min(100,val/s.expense*100):0}%"></div></div></div>`).join(''):'<div class="empty">No hay gastos registrados para este periodo.</div>';
+ $('financialNotice').className='notice'+(s.balance<0?' warn':'');$('financialNotice').textContent=s.income===0&&s.expense===0?'Aún no hay movimientos para este periodo. Registra tus ingresos y gastos.':s.balance<0?`Atención: gastaste ${money(Math.abs(s.balance))} más de lo que ingresaste. Revisa tus gastos y compromisos.`:`Tu balance es positivo por ${money(s.balance)}. Considera separar una parte para ahorro y objetivos.`;
+ const recent=[...s.list].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,6);$('recentTable').innerHTML=recent.length?recent.map(m=>`<tr><td>${esc(m.date)}</td><td>${esc(m.concept)}</td><td><span class="pill ${m.type==='Ingreso'?'income':'expense'}">${esc(m.type)}</span></td><td>${esc(m.category)}</td><td class="amount ${m.type==='Ingreso'?'green':'red'}">${m.type==='Ingreso'?'+':'−'}${money(m.amount)}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">Sin movimientos.</td></tr>';
+}
+function renderMovements(){
+ const filter=$('typeFilter').value;const rows=[...state.movements].filter(m=>filter==='Todos'||m.type===filter).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+ $('movementTable').innerHTML=rows.length?rows.map(m=>`<tr><td>${esc(m.date)}</td><td title="${esc(m.notes)}">${esc(m.concept)}</td><td><span class="pill ${m.type==='Ingreso'?'income':'expense'}">${esc(m.type)}</span></td><td>${esc(m.category)}</td><td>${esc(m.account||'—')}</td><td class="amount ${m.type==='Ingreso'?'green':'red'}">${m.type==='Ingreso'?'+':'−'}${money(m.amount)}</td><td><button class="small secondary" data-edit="${m.id}">Editar</button> <button class="small danger" data-delete-m="${m.id}">Eliminar</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">No hay movimientos que mostrar.</td></tr>';
+}
+function renderBudget(){const s=stats(),budget=Number(state.budget||0),pct=budget>0?s.expense/budget*100:0;$('budgetAmount').value=state.budget??0;$('budgetSpent').textContent=money(s.expense);$('budgetBar').style.width=Math.min(100,pct)+'%';$('budgetBar').classList.toggle('over',s.expense>budget);$('budgetPercent').textContent=pct.toFixed(1)+'% utilizado';$('budgetRemaining').textContent=money(budget-s.expense)+(s.expense>budget?' excedidos':' disponibles');$('budgetNotice').className='notice'+(s.expense>budget?' warn':'');$('budgetNotice').textContent=budget<=0?'Define un presupuesto para empezar a controlar tus gastos.':s.expense>budget?`Superaste tu presupuesto por ${money(s.expense-budget)}.`:`Te quedan ${money(budget-s.expense)} de tu presupuesto para este periodo.`;
+ const cats={};s.list.filter(m=>m.type==='Gasto').forEach(m=>cats[m.category]=(cats[m.category]||0)+Number(m.amount));const pairs=Object.entries(cats).sort((a,b)=>b[1]-a[1]);$('budgetCategories').innerHTML=pairs.length?pairs.map(([n,v])=>`<div class="barrow"><div class="barlabel"><span>${esc(n)}</span><strong>${money(v)}</strong></div><div class="track"><div class="fill" style="width:${s.expense?100*v/s.expense:0}%"></div></div></div>`).join(''):'<div class="empty">Aún no hay gastos para clasificar.</div>';}
+function renderDebts(){const total=sum(state.debts.map(d=>({amount:d.balance}))),monthly=sum(state.debts.map(d=>({amount:d.payment})));$('debtTotal').textContent=money(total);$('debtMonthly').textContent=money(monthly);$('debtList').innerHTML=state.debts.length?state.debts.map(d=>`<div class="debtitem"><div class="rowbetween"><div><strong>${esc(d.name)}</strong><div class="muted">${esc(d.type)}${d.due?' · Vence: '+esc(d.due):''}</div></div><strong>${money(d.balance)}</strong></div><div class="rowbetween" style="margin-top:9px"><span class="muted">Pago mensual: ${money(d.payment)}</span><span><button class="small secondary" data-edit-d="${d.id}">Actualizar saldo</button> <button class="small danger" data-delete-d="${d.id}">Eliminar</button></span></div></div>`).join(''):'<div class="empty">No has registrado deudas.</div>';renderDashboard()}
+function renderSaving(){const s=state.saving||{name:'Mi meta',target:0,current:0,monthly:0};$('sName').value=s.name||'';$('sTarget').value=s.target||0;$('sCurrent').value=s.current||0;$('sMonthly').value=s.monthly||0;$('savingTitle').textContent=s.name||'Mi meta de ahorro';$('savingAmounts').textContent=`${money(s.current)} / ${money(s.target)}`;const pct=s.target>0?s.current/s.target*100:0;$('savingBar').style.width=Math.min(100,pct)+'%';$('savingPercent').textContent=pct.toFixed(1)+'% completado';$('savingLeft').textContent=money(Math.max(0,s.target-s.current))+' restantes';$('savingEstimate').textContent=s.target<=0?'Define el monto objetivo de tu meta.':s.current>=s.target?'¡Meta alcanzada!':s.monthly>0?`Si aportas ${money(s.monthly)} cada mes, llegarás en aproximadamente ${Math.ceil((s.target-s.current)/s.monthly)} meses.`:'Define una aportación mensual para estimar cuánto tardarás.'}
+function renderAll(){renderDashboard();renderMovements();renderBudget();renderDebts();renderSaving();persist()}
+function resetMovementForm(){editingId=null;$('movementForm').reset();$('mDate').value=localDate;$('mType').value='Gasto';fillCategories('Gasto','Alimentación');$('movementFormTitle').textContent='Agregar movimiento';$('saveMovement').textContent='Guardar movimiento';$('cancelEdit').classList.add('hidden')}
+function editMovement(id){const m=state.movements.find(x=>x.id===id);if(!m)return;editingId=id;$('mType').value=m.type;fillCategories(m.type,m.category);$('mDate').value=m.date;$('mConcept').value=m.concept;$('mAmount').value=m.amount;$('mAccount').value=m.account||'';$('mNotes').value=m.notes||'';$('movementFormTitle').textContent='Editar movimiento';$('saveMovement').textContent='Guardar cambios';$('cancelEdit').classList.remove('hidden');showTab('movimientos');window.scrollTo({top:0,behavior:'smooth'})}
+function showTab(id){document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));}
+$('nav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab)});
+document.addEventListener('click',e=>{const go=e.target.closest('[data-goto]');if(go)showTab(go.dataset.goto);const edit=e.target.closest('[data-edit]');if(edit)editMovement(Number(edit.dataset.edit));const del=e.target.closest('[data-delete-m]');if(del&&confirm('¿Eliminar este movimiento?')){state.movements=state.movements.filter(m=>m.id!==Number(del.dataset.deleteM));renderAll()}const editD=e.target.closest('[data-edit-d]');if(editD){const d=state.debts.find(x=>x.id===Number(editD.dataset.editD));if(d){const val=prompt('Nuevo saldo pendiente para '+d.name,d.balance);if(val!==null&&val.trim()!==''&&Number.isFinite(Number(val))&&Number(val)>=0){d.balance=Number(val);renderAll()}}}const delD=e.target.closest('[data-delete-d]');if(delD&&confirm('¿Eliminar esta deuda?')){state.debts=state.debts.filter(d=>d.id!==Number(delD.dataset.deleteD));renderAll()}});
+$('mType').addEventListener('change',()=>fillCategories($('mType').value));
+$('monthFilter').addEventListener('change',()=>{renderDashboard();renderMovements();renderBudget()});
+$('typeFilter').addEventListener('change',renderMovements);
+$('movementForm').addEventListener('submit',e=>{e.preventDefault();const amount=Number($('mAmount').value);if(!Number.isFinite(amount)||amount<=0)return alert('Ingresa un monto mayor que cero.');const m={id:editingId??(state.movements.reduce((max,x)=>Math.max(max,x.id),0)+1),type:$('mType').value,date:$('mDate').value,concept:$('mConcept').value.trim(),category:$('mCategory').value,amount,account:$('mAccount').value.trim(),notes:$('mNotes').value.trim()};if(!m.date||!m.concept)return alert('Completa fecha y concepto.');if(editingId!==null)state.movements=state.movements.map(x=>x.id===editingId?m:x);else state.movements.push(m);resetMovementForm();renderAll()});
+$('cancelEdit').addEventListener('click',resetMovementForm);
+$('budgetForm').addEventListener('submit',e=>{e.preventDefault();const n=Number($('budgetAmount').value);if(!Number.isFinite(n)||n<0)return alert('Ingresa un presupuesto válido.');state.budget=n;renderAll()});
+$('debtForm').addEventListener('submit',e=>{e.preventDefault();const balance=Number($('dBalance').value),payment=Number($('dPayment').value||0);if(balance<=0||payment<0)return alert('Revisa los montos ingresados.');state.debts.push({id:state.debts.reduce((max,d)=>Math.max(max,d.id),0)+1,name:$('dName').value.trim(),balance,payment,due:$('dDue').value,type:$('dType').value});$('debtForm').reset();$('dPayment').value=0;renderAll()});
+$('savingForm').addEventListener('submit',e=>{e.preventDefault();const target=Number($('sTarget').value),current=Number($('sCurrent').value),monthly=Number($('sMonthly').value||0);if(target<0||current<0||monthly<0)return alert('Ingresa montos válidos.');state.saving={name:$('sName').value.trim(),target,current,monthly};renderAll()});
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+$('exportBtn').addEventListener('click',()=>{const cols=['Fecha','Tipo','Concepto','Categoria','Monto_MXN','Cuenta','Notas'];const lines=[cols,...state.movements.map(m=>[m.date,m.type,m.concept,m.category,m.amount,m.account||'',m.notes||''])].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));download('movimientos_financieros.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8;')});
+$('backupBtn').addEventListener('click',()=>download('respaldo_finanzas.json',JSON.stringify(state,null,2),'application/json'));
+$('restoreFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const obj=JSON.parse(await file.text());if(!Array.isArray(obj.movements)||!Array.isArray(obj.debts)||!obj.saving)throw new Error('Formato inválido');if(!confirm('Importar este respaldo reemplazará los datos actuales. ¿Continuar?'))return;state={...state,...obj};renderAll();alert('Respaldo importado correctamente.')}catch(err){alert('No se pudo importar el archivo. Verifica que sea un respaldo JSON válido.')}finally{e.target.value=''}});
+$('resetBtn').addEventListener('click',()=>{if(confirm('¿Seguro que quieres borrar todos los movimientos, deudas y ajustes guardados? Esta acción no se puede deshacer.')){state={movements:[],budget:0,debts:[],saving:{name:'Mi meta de ahorro',target:0,current:0,monthly:0}};resetMovementForm();renderAll()}});
+$('monthFilter').value=monthNow;$('mDate').value=localDate;fillCategories('Gasto','Alimentación');load();$('monthFilter').value=monthNow;renderAll();
+})();
+</script>
+</body>
+</html>
